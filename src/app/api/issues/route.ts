@@ -8,7 +8,7 @@ import prisma from "../../../../prisma/client";
 const validateIssue = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(1).max(500),
-  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
+  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]), 
 });                             
 
 // we are exporting a function that will handle the POST request here we are using
