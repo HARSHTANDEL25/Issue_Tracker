@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import prisma from "../../../../prisma/client";
-
-// HERE WE ARE VALIDATING THE ISSUE DATa with the zos livrary
-//we only validate the 2 properties others are by default so
-
-const validateIssue = z.object({
-  title: z.string().min(1).max(255),
-  description: z.string().min(1).max(500),
-  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]), 
-});                             
+import { validateIssue } from "../../validateIssue";
 
 // we are exporting a function that will handle the POST request here we are using
 // NextRequest and NextResponse from next/server to handle the request and response

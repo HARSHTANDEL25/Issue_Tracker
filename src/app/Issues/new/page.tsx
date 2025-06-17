@@ -1,8 +1,10 @@
 "use client";
-import { Button, TextField } from "@radix-ui/themes";
+import Spinner from "@/app/components/Spinner";
+import { Button, Callout, TextField } from "@radix-ui/themes";
 import "easymde/dist/easymde.min.css";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
@@ -12,70 +14,84 @@ const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
 
 interface FormValue {
   title: string;
-  description: string; 
+  description: string;
   status: string;
 }
 
-
 const NewIssuePage = () => {
- const router = useRouter();
+  const router = useRouter();
   //here we cant destructure 2 time with useForm because we are using react-hook-form
   //so we need to use the register and control from useForm
-  const { register, control, handleSubmit } = useForm<FormValue>();
+  const { register, control, handleSubmit  } = useForm<FormValue>();
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
-    <form
-    onSubmit={handleSubmit(async (data) => {
-        const response = await fetch("/api/issues", {
+    <div className="">
+        {error && (
+      <Callout.Root color="red" variant="soft" className="mb-5 max-w-xl ml-4">
+        <Callout.Text>
+          {error }
+        </Callout.Text>
+      </Callout.Root>
+        )}
+
+      <form
+        onSubmit={handleSubmit(async (data) => {
+          const response = await fetch("/api/issues", {
             method: "POST",
             body: JSON.stringify(data),
             headers: {
-                "Content-Type": "application/json",
+              "Content-Type": "application/json",
             },
-        });
-        if (response.ok) {
+          });
+          if (response.ok) {
+            setIsSubmitting(true);
             const result = await response.json();
             console.log(result);
             router.push("/issues");
-        } else {
+          } else {
+            setIsSubmitting(false);
+            setError("Failed to submit issue");
             console.error("Failed to submit issue");
-        }
-
-    })}
-      className="max-w-xl p-5 space-y-4 "
-    >
-      <TextField.Root
-        placeholder="Search Title"
-        color="green"
-        variant="soft"
-        radius="large"
-        {...register("title")}
-      ></TextField.Root>
-      <Controller
-        name="description"
-        control={control}
-        render={({ field }) => (
-          <SimpleMDE
-            placeholder="Description"
-            {...field}
-            className="rounded-md mt-12"
-          />
-        )}
-      />
-      <div>
-        <label className="block text-sm font-medium">Status</label>
-        <select
-          {...register("status")}
-          className="w-full p-2 border border-gray-300 rounded-md"
-        >
-          <option value="">Select status</option>
-          <option value="OPEN">OPEN</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="CLOSED">CLOSED</option>
-        </select>
-      </div>
-      {/* we can use this if we want custom dropdown menu for status */}
-      {/* <Controller
+          }
+        })}
+        className="max-w-xl p-5 space-y-4 "
+      >
+        <TextField.Root
+          placeholder="Search Title"
+          color="green"
+          variant="soft"
+          radius="large"
+          className="max-w-xl"
+          {...register("title")}
+        
+        ></TextField.Root>
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <SimpleMDE
+              placeholder="Description"
+              {...field}
+              className="rounded-md mt-12 max-w-xl"
+            />
+          )}
+        />
+        <div>
+          <label className="block text-sm font-medium">Status</label>
+          <select
+            {...register("status")}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="">Select status</option>
+            <option value="OPEN">OPEN</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="CLOSED">CLOSED</option>
+          </select>
+        </div>
+        {/* we can use this if we want custom dropdown menu for status */}
+        {/* <Controller
   name="status"
   control={control}
   render={({ field }) => (
@@ -92,11 +108,12 @@ const NewIssuePage = () => {
   )}
 /> */}
 
-      <br />
-      <Button color="crimson" variant="soft" className="space-y-5">
-        Submit New Issue
-      </Button>
-    </form>
+        <br />
+        <Button color="crimson" variant="soft" className="space-y-5">
+        Submit New Issue {isSubmitting ? <Spinner/>:null}
+        </Button>
+      </form>
+    </div>
   );
 };
 
